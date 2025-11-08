@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main, master, develop, stage, release]
   
+permissions:
+  contents: read
+  security-events: write
+  
 jobs:
   polaris-scan:
     runs-on: [ ubuntu-latest ]
@@ -41,8 +45,10 @@ jobs:
         ### PULL REQUEST COMMENTS
         polaris_prComment_enabled: true
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        #polaris_reports_sarif_create: true
-        detect_args: "--detect.source.path: ${{ github.workspace }}/nodejs-npm"
-
+        
+        ### SARIF report generation and upload
+        polaris_reports_sarif_create: true
+        polaris_upload_sarif_report: true
+        
         ### Mark build status if policy violating issues are found
         mark_build_status: 'success'
