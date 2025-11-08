@@ -1,29 +1,48 @@
-name: Simplified Example
+name: Polaris Scan for Basic Users
                                                                                                                                                                                                                                          
 on:
   push:
-    branches: [ main ]
+    branches: [main, master, develop, stage, release]
   pull_request:
-    branches: [ main ]
-                                                                                                                                                                                                                                         
+    branches: [main, master, develop, stage, release]
+  
 jobs:
   polaris-scan:
-    runs-on: [mac-arm-sh]
-                                                                                                                                                                                                                                         
-    steps:
+    runs-on: [ ubuntu-latest ]
     
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}/nodejs-npm
+
+    steps:
     - name: Checkout Source
       uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'  
+   
+    - name: Install dependencies
+      run: npm install  
+
+    - name: Build Project
+      run: |
+        npm rebuild
                                                                                                                                                                                                                                          
-    - name: Polaris Scan
+    - name: Polaris Scan for Basic Users
       uses: blackduck-inc/black-duck-security-scan@v2
       with:
-        polaris_server_url: ${{ vars.POLARIS_SERVER_URL }}
+        ### SCANNING: Required fields
+        polaris_server_url: ${{ secrets.POLARIS_SERVER_URL }}
         polaris_access_token: ${{ secrets.POLARIS_ACCESS_TOKEN }}
-        github_token: ${{ secrets.GITHUB_TOKEN }}
         polaris_assessment_types: "SAST,SCA"
+
+        ### PULL REQUEST COMMENTS
         polaris_prComment_enabled: true
-        polaris_reports_sarif_create: true
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        #polaris_reports_sarif_create: true
         detect_args: "--detect.source.path: ${{ github.workspace }}/nodejs-npm"
 
-      
+        ### Mark build status if policy violating issues are found
+        mark_build_status: 'success'
